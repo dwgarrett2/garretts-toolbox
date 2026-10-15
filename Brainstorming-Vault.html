@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garrett's Brainstorming Vault</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; background-color: #1e1e1e; color: #e0e0e0; }
+        h2 { margin-bottom: 5px; color: #fff; display: flex; justify-content: space-between; align-items: baseline; }
+        .credit-line { font-size: 0.85em; color: #888; padding-bottom: 15px; border-bottom: 1px solid #444; margin-bottom: 20px; }
+        .credit-line a { color: #7289da; text-decoration: none; }
+        
+        .layout-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 800px) { .layout-grid { grid-template-columns: 350px 1fr; } }
+        
+        .panel { background: #252525; padding: 20px; border-radius: 6px; border: 1px solid #444; }
+        .panel h3 { margin-top: 0; color: #7289da; border-bottom: 1px solid #444; padding-bottom: 10px; font-size: 1.1em; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        
+        label { font-size: 0.9em; font-weight: bold; color: #aaa; display: block; margin-top: 15px; margin-bottom: 5px; }
+        
+        input[type="text"], select, textarea { width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #555; color: #fff; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
+        input[type="file"] { display: none; }
+        textarea { height: 180px; resize: vertical; line-height: 1.5; }
+        
+        button { background-color: #7289da; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 15px; font-weight: bold; transition: background 0.2s; width: 100%; }
+        button:hover { background-color: #5b6eae; }
+        button.secondary { background-color: #4CAF50; margin-top: 0; padding: 8px 12px; font-size: 13px; width: auto; }
+        button.secondary:hover { background-color: #388E3C; }
+        button.tertiary { background-color: #00796b; margin-top: 0; padding: 8px 12px; font-size: 13px; width: auto; }
+        button.tertiary:hover { background-color: #004d40; }
+        button.danger { background-color: transparent; color: #f44336; border: 1px solid #f44336; padding: 6px 12px; font-size: 12px; margin-top: 10px; width: auto; float: right; }
+        button.danger:hover { background-color: #f44336; color: white; }
+
+        .btn-group-header { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+
+        /* Vault Entries */
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        .entries-container { display: flex; flex-direction: column; gap: 15px; max-height: 700px; overflow-y: auto; padding-right: 5px; }
+        
+        .entry-card { background: #2d2d2d; border: 1px solid #444; border-radius: 6px; padding: 15px; position: relative; transition: transform 0.1s; }
+        .entry-card:hover { border-color: #555; }
+        .entry-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .entry-title { font-size: 1.1em; font-weight: bold; color: #fff; margin: 0; }
+        .entry-date { font-size: 0.75em; color: #888; }
+        .entry-content { font-size: 0.95em; line-height: 1.6; color: #ccc; white-space: pre-wrap; background: #1e1e1e; padding: 12px; border-radius: 4px; border-left: 3px solid #7289da; }
+        
+        .tag { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75em; font-weight: bold; margin-top: 5px; }
+        .tag-dreams { background: #673ab7; color: #fff; }
+        .tag-plot { background: #1976d2; color: #fff; }
+        .tag-lore { background: #d32f2f; color: #fff; }
+        .tag-tech { background: #00796b; color: #fff; }
+        .tag-general { background: #616161; color: #fff; }
+
+        .spark-box { background: #1a1a1a; padding: 15px; border-radius: 4px; border: 1px dashed #7289da; font-size: 1.05em; color: #aaa; margin-bottom: 15px; display: none; line-height: 1.6; }
+        .prompt-highlight { color: #f8f8f2; font-weight: bold; }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
+    </style>
+</head>
+<body>
+
+    <h2>Garrett's Brainstorming Vault</h2>
+    <div class="credit-line">
+        Created by D.W. Garrett | <a href="mailto:dwgarrett.creative@outlook.com">dwgarrett.creative@outlook.com</a>
+    </div>
+
+    <div class="layout-grid">
+        
+        <!-- LEFT PANEL: INPUT -->
+        <div class="panel">
+            <h3>
+                Log New Idea
+                <button class="secondary" onclick="generateSpark()">Generate Prompt</button>
+            </h3>
+            
+            <div id="spark-box" class="spark-box"></div>
+
+            <label>Title / Concept Name</label>
+            <input type="text" id="idea-title" placeholder="e.g., The shadow in the static...">
+
+            <label>Category</label>
+            <select id="idea-category">
+                <option value="dreams">Dreams & Nightmares</option>
+                <option value="lore">Cosmic / Lore</option>
+                <option value="tech">Retro / Tech Concepts</option>
+                <option value="plot">Plot Hooks & Arcs</option>
+                <option value="general" selected>General Idea</option>
+            </select>
+
+            <label>The Idea</label>
+            <textarea id="idea-content" placeholder="Jot down the details, imagery, or dialogue snippets here..."></textarea>
+
+            <button onclick="saveIdea()">Save to Vault</button>
+            <span id="save-confirm" style="color: #4CAF50; font-size: 0.9em; display: none; text-align: center; margin-top: 10px; display: block;">Idea Saved!</span>
+        </div>
+
+        <!-- RIGHT PANEL: VAULT DISPLAY -->
+        <div class="panel">
+            <h3>
+                <span>Vault Archive <span id="vault-count" style="font-size: 0.8em; color: #888; font-weight: normal; margin-left: 10px;">0 entries</span></span>
+                <div class="btn-group-header">
+                    <button class="secondary" style="background-color: #616161;" onclick="exportText()">Export (.txt)</button>
+                    <button class="tertiary" onclick="exportJSONBackup()">Export JSON</button>
+                    <button class="tertiary" onclick="document.getElementById('import-file').click()" style="background-color: #006064;">Restore JSON</button>
+                    <input type="file" id="import-file" accept=".json" onchange="importJSONBackup(event)">
+                </div>
+            </h3>
+            
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search ideas..." onkeyup="renderVault()">
+                <select id="filter-category" onchange="renderVault()" style="width: 200px;">
+                    <option value="all">All Categories</option>
+                    <option value="dreams">Dreams & Nightmares</option>
+                    <option value="lore">Cosmic / Lore</option>
+                    <option value="tech">Retro / Tech</option>
+                    <option value="plot">Plot Hooks</option>
+                    <option value="general">General</option>
+                </select>
+            </div>
+
+            <div class="entries-container" id="vault-container">
+                <!-- Entries will generate here -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let vaultEntries = [];
+
+        // EXPANDED PROCEDURAL MAD LIBS PROMPT ENGINE
+        const subjects = [
+            "A forgotten Packard Bell 486", "A dusty Super Nintendo import cartridge", "A heavily modified Commodore VIC-20", 
+            "A dual-slot user port expander", "An MS-DOS 6.22 boot disk", "A sealed box of 5.25-inch floppy disks",
+            "A 3DO FZ-10 with a stuck disc drive", "The L2 cache SRAM chips on a retro motherboard", 
+            "A 56k dial-up Wi-Fi modem", "A heavy CRT monitor covered in static", "A frayed S-Video cable", 
+            "A mechanical A/V switchbox", "A Sega Genesis hooked up to an unauthorized peripheral",
+            "An eight-legged entity", "An eldritch consciousness trapped in a subfolder", "A massive shadow cast by nothing",
+            "An ancient, multi-limbed idol carved from heatsink aluminum", "A parasitic glitch", "A sentient strand of web",
+            "A whispering corpse found inside an arcade cabinet", "A forgotten lore bible", "A spiral-bound continuity ledger",
+            "An unreleased manuscript submitted to the copyright office",
+            "An isolated AzerothCore server", "A private server populated entirely by playerbots", 
+            "An unreleased N64 game ROM", "A corrupted level 80 NPC", "A Japanese visual novel completely untranslated",
+            "A rogue macro script", "A save file from 1998",
+            "The local AM radio station's broadcast tower", "A character's childhood reflection", 
+            "A decommissioned military mainframe", "A freshwater fishing license issued to a dead man", 
+            "A rented glamping tent"
+        ];
+
+        const actions = [
+            "powers on by itself to display raw coordinates leading to", 
+            "begins emitting a low-frequency hum that physically alters", 
+            "contains a hidden root directory that perfectly describes", 
+            "boots into a dual-boot menu where the second option leads to", 
+            "generates a BASIC prompt that eerily predicts the future of", 
+            "compiles a cursed binary script that opens a gateway to", 
+            "softmods the surrounding reality, directly exposing", 
+            "mechanically locks its user port until someone can decipher", 
+            "spits out corrupted, fragmented data that somehow resurrects",
+            "formats its own hard drive, replacing every file with an image of",
+            "translates Hiragana into a summoning chant for",
+            "routes a telepathic signal through an S-Video line directly into",
+            "demands a sacrifice of memory and thermal paste in exchange for access to", 
+            "starts syncing an alternate timeline with", 
+            "broadcasts a telepathic signal straight into", 
+            "reveals a massive, shadowy silhouette lurking inside", 
+            "attempts to forcibly overwrite the short-term memories of anyone near", 
+            "begins weaving a massive web made of fiber-optic glass over",
+            "pulls the protagonist entirely out of their body, depositing them in",
+            "forces the protagonist to continuously rewrite a lore ledger about",
+            "bleeds a thick, black ichor that smells exactly like",
+            "spawns a hundred automated bots that march silently toward",
+            "renders an endless, low-poly labyrinth that traps",
+            "requires a jumper set to exactly 66 MHz to safely contain",
+            "shows a live, impossible video feed of", 
+            "starts counting down to zero, causing immediate panic in", 
+            "translates an ancient, forbidden language into a text file about"
+        ];
+
+        const settings = [
+            "a place that geographically shouldn't exist.", 
+            "the muddy bottom of a sprawling freshwater lake.", 
+            "an isolated glamping site deep in the Alabama wilderness.", 
+            "a quiet suburban neighborhood frozen at 3:00 AM.", 
+            "Lake Martin State Park during an unnatural eclipse.",
+            "a rusted-out fishing boat drifting in the fog.",
+            "the flooded basement of an abandoned electronics store.", 
+            "a corporate server room that has been welded shut since 1999.", 
+            "the deep, overgrown woods behind the local arcade.", 
+            "an offline 90s chatroom that is somehow still receiving active messages.", 
+            "the sticky floor of a bankrupt video rental store.",
+            "a parallel reality running entirely on unstable 8-bit architecture.", 
+            "a bedroom perfectly preserved from 1995.",
+            "a localized, unending eclipse.", 
+            "a traumatic memory the protagonist swore they had fabricated.", 
+            "the cosmic, suffocating void between dimensions.", 
+            "a sprawling, web-covered concrete bunker.", 
+            "the subterranean ruins of a civilization that worshipped a multi-legged god.", 
+            "a restricted, undocumented section of a public library.",
+            "the blank space between two paragraphs of a manuscript.",
+            "a localized void trapped between motherboard traces.",
+            "the digital afterlife of deleted player characters."
+        ];
+
+        window.onload = function() {
+            const stored = localStorage.getItem('garrettBrainstormVault');
+            if (stored) {
+                try { vaultEntries = JSON.parse(stored); } catch (e) { vaultEntries = []; }
+            }
+            renderVault();
+        };
+
+        function generateSpark() {
+            const box = document.getElementById('spark-box');
+            const sub = subjects[Math.floor(Math.random() * subjects.length)];
+            const act = actions[Math.floor(Math.random() * actions.length)];
+            const set = settings[Math.floor(Math.random() * settings.length)];
+            
+            box.innerHTML = `<span class="prompt-highlight">${sub}</span> <span style="color: #999;">${act}</span> <span class="prompt-highlight">${set}</span>`;
+            box.style.display = 'block';
+        }
+
+        function saveIdea() {
+            const title = document.getElementById('idea-title').value.trim();
+            const category = document.getElementById('idea-category').value;
+            const content = document.getElementById('idea-content').value.trim();
+
+            if (!title || !content) {
+                alert("Please provide both a title and the idea content.");
+                return;
+            }
+
+            const newEntry = {
+                id: 'idea-' + Date.now(),
+                title: title,
+                category: category,
+                content: content,
+                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+
+            vaultEntries.unshift(newEntry);
+            localStorage.setItem('garrettBrainstormVault', JSON.stringify(vaultEntries));
+
+            document.getElementById('idea-title').value = '';
+            document.getElementById('idea-content').value = '';
+            document.getElementById('spark-box').style.display = 'none';
+            
+            const confirmMsg = document.getElementById('save-confirm');
+            confirmMsg.style.display = 'block';
+            setTimeout(() => confirmMsg.style.display = 'none', 2000);
+
+            renderVault();
+        }
+
+        function deleteIdea(id) {
+            if (confirm("Are you sure you want to permanently delete this idea?")) {
+                vaultEntries = vaultEntries.filter(entry => entry.id !== id);
+                localStorage.setItem('garrettBrainstormVault', JSON.stringify(vaultEntries));
+                renderVault();
+            }
+        }
+
+        // Original Text Export
+        function exportText() {
+            if (vaultEntries.length === 0) {
+                alert("The vault is empty. Nothing to export!");
+                return;
+            }
+
+            let fileContent = "=================================================\n";
+            fileContent += "   GARRETT's BRAINSTORMING VAULT EXPORT\n";
+            fileContent += "   Generated: " + new Date().toLocaleString() + "\n";
+            fileContent += "=================================================\n\n";
+
+            vaultEntries.forEach(entry => {
+                fileContent += `TITLE: ${entry.title}\n`;
+                fileContent += `CATEGORY: ${entry.category.toUpperCase()}\n`;
+                fileContent += `DATE: ${entry.date}\n`;
+                fileContent += `-------------------------------------------------\n`;
+                fileContent += `${entry.content}\n\n`;
+                fileContent += `=================================================\n\n`;
+            });
+
+            const blob = new Blob([fileContent], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.download = `Garretts_Vault_Export_${dateStr}.txt`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // JSON Backup Export
+        function exportJSONBackup() {
+            const backupData = {
+                version: 1,
+                date: new Date().toISOString(),
+                entries: vaultEntries
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            
+            const dateStr = new Date().toISOString().split('T')[0];
+            downloadAnchor.setAttribute("download", `Brainstorm_Vault_Backup_${dateStr}.json`);
+            
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // JSON Restore Import
+        function importJSONBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.entries && Array.isArray(parsed.entries)) {
+                        if (confirm("Restoring this JSON backup will overwrite your current vault entries. Proceed?")) {
+                            vaultEntries = parsed.entries;
+                            localStorage.setItem('garrettBrainstormVault', JSON.stringify(vaultEntries));
+                            renderVault();
+                            alert("Vault successfully restored from backup!");
+                        }
+                    } else {
+                        alert("Invalid backup file structure.");
+                    }
+                } catch (err) {
+                    alert("Error parsing JSON file: " + err.message);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function renderVault() {
+            const container = document.getElementById('vault-container');
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filterCat = document.getElementById('filter-category').value;
+
+            container.innerHTML = '';
+            let displayCount = 0;
+
+            vaultEntries.forEach(entry => {
+                const matchesSearch = entry.title.toLowerCase().includes(searchTerm) || entry.content.toLowerCase().includes(searchTerm);
+                const matchesFilter = filterCat === 'all' || entry.category === filterCat;
+
+                if (matchesSearch && matchesFilter) {
+                    displayCount++;
+                    
+                    let tagClass = 'tag-general';
+                    let tagLabel = 'General';
+                    if (entry.category === 'dreams') { tagClass = 'tag-dreams'; tagLabel = 'Dream'; }
+                    if (entry.category === 'plot') { tagClass = 'tag-plot'; tagLabel = 'Plot Hook'; }
+                    if (entry.category === 'lore') { tagClass = 'tag-lore'; tagLabel = 'Lore'; }
+                    if (entry.category === 'tech') { tagClass = 'tag-tech'; tagLabel = 'Tech Concept'; }
+
+                    const card = document.createElement('div');
+                    card.className = 'entry-card';
+                    card.innerHTML = `
+                        <div class="entry-header">
+                            <div>
+                                <h4 class="entry-title">${entry.title}</h4>
+                                <span class="tag ${tagClass}">${tagLabel}</span>
+                            </div>
+                            <span class="entry-date">${entry.date}</span>
+                        </div>
+                        <div class="entry-content">${entry.content}</div>
+                        <button class="danger" onclick="deleteIdea('${entry.id}')">Delete Entry</button>
+                        <div style="clear: both;"></div>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+
+            document.getElementById('vault-count').innerText = `${displayCount} entries`;
+
+            if (displayCount === 0) {
+                container.innerHTML = '<p style="color: #aaa; font-style: italic;">No ideas found. Time to start brainstorming!</p>';
+            }
+        }
+    </script>
+</body>
+</html>

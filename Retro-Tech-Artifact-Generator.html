@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro-Tech Artifact Generator</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; background-color: #1e1e1e; color: #e0e0e0; }
+        h2 { margin-bottom: 5px; color: #fff; }
+        .credit-line { font-size: 0.85em; color: #888; padding-bottom: 15px; border-bottom: 1px solid #444; margin-bottom: 20px; }
+        
+        .layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media(max-width: 768px) { .layout-grid { grid-template-columns: 1fr; } }
+
+        .panel { background: #252525; padding: 20px; border-radius: 6px; border: 1px solid #444; display: flex; flex-direction: column; }
+        .panel h3 { margin-top: 0; color: #7289da; border-bottom: 1px solid #444; padding-bottom: 10px; font-size: 1.1em; }
+        
+        button { background-color: #7289da; color: white; border: none; padding: 12px; font-size: 15px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { background-color: #5b6eae; }
+        button.secondary { background-color: #4CAF50; }
+        button.secondary:hover { background-color: #388E3C; }
+        button.tertiary { background-color: #d32f2f; }
+        button.tertiary:hover { background-color: #b71c1c; }
+        button.quaternary { background-color: #9c27b0; }
+        button.quaternary:hover { background-color: #7b1fa2; }
+
+        .output-display { background: #1a1a1a; border: 2px dashed #7289da; padding: 25px 15px; text-align: center; border-radius: 6px; margin-bottom: 20px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .output-text { font-family: 'Courier New', Courier, monospace; font-size: 1.4em; font-weight: bold; color: #fff; text-shadow: 0 0 5px rgba(114, 137, 218, 0.5); margin: 0; }
+        
+        .history-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 450px; padding-right: 5px; }
+        .history-item { background: #2d2d2d; padding: 12px 15px; border-radius: 4px; border-left: 4px solid #7289da; display: flex; justify-content: space-between; align-items: center; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 0.9em; }
+        .history-item.location { border-left-color: #4CAF50; }
+        .history-item.protocol { border-left-color: #f44336; }
+        .history-item.entity { border-left-color: #9c27b0; }
+        
+        .copy-btn { background: transparent; color: #aaa; border: 1px solid #555; padding: 4px 8px; font-size: 12px; width: auto; margin: 0; cursor: pointer; }
+        .copy-btn:hover { background: #444; color: #fff; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
+    </style>
+</head>
+<body>
+
+    <h2>Garrett's Retro-Tech Artifact Generator</h2>
+    <div class="credit-line">Created by D.W. Garrett | dwgarrett.creative@outlook.com</div>
+
+    <div class="layout-grid">
+        
+        <!-- GENERATOR CONTROLS -->
+        <div class="panel">
+            <h3>Boot Sequence</h3>
+            
+            <div class="output-display">
+                <p class="output-text" id="main-output">AWAITING INPUT...</p>
+            </div>
+
+            <button onclick="generateName('hardware')">Generate Hardware / Artifact</button>
+            <button class="secondary" onclick="generateName('location')">Generate Sector / Location</button>
+            <button class="tertiary" onclick="generateName('protocol')">Generate System Protocol</button>
+            <button class="quaternary" onclick="generateName('entity')">Generate Entity / Anomaly</button>
+        </div>
+
+        <!-- HISTORY LOG -->
+        <div class="panel">
+            <h3>Extraction Log <span style="font-size: 0.8em; color: #888; font-weight: normal; float: right;" id="log-count">0 items</span></h3>
+            <div class="history-list" id="history-container">
+                <p style="color: #aaa; font-style: italic; text-align: center; margin-top: 20px;">No data extracted yet.</p>
+            </div>
+            <button style="background-color: transparent; border: 1px solid #555; color: #aaa; margin-top: auto;" onclick="clearHistory()">Clear Log</button>
+        </div>
+
+    </div>
+
+    <script>
+        // MASSIVELY EXPANDED VOCABULARY ARRAYS
+        const prefixes = [
+            "Null", "Void", "Tetrarch", "Obolus", "Abyssal", "Arachnid", "Covenant", "Spectral", "Chitin", "Cobweb", 
+            "Eldritch", "Obsidian", "Phantom", "Grave", "Mnemonic", "Paradox", "Cryptic", "Chronos", "Eclipse", "Quantum",
+            "Parasitic", "Sub-Ether", "Neural", "Magnetic", "Optical", "Cursed", "Fractal", "Tesseract", "Umbral", "Somatic",
+            "Astral", "Binary", "Hexadecimal", "Ghost", "Flesh", "Bone", "Rust", "Copper", "Silicon", "Asbestos", "Feral",
+            "Mimic", "Sentient", "Rogue", "Abandoned", "Corrupted", "Encrypted", "Unholy", "Nameless", "Forgotten", "Viral", "Necrotic"
+        ];
+
+        const hardwareNouns = [
+            "Cache", "Modem", "Terminal", "Mainframe", "Jumper", "SRAM", "Cartridge", "Switchbox", "Motherboard", "Heatsink", 
+            "Co-processor", "Expansion Board", "Boot Disk", "Floppy", "CRT Monitor", "Drive", "User Port", "SCSI Controller", 
+            "CMOS Battery", "VRAM", "Daughterboard", "Zip Disk", "Coaxial Cable", "IDE Ribbon", "Heatpipe", "BNC Connector", 
+            "EPROM", "Parallel Port", "Sound Blaster", "Capacitor", "Resistor", "Transistor", "Oscilloscope", "Logic Board", 
+            "VGA Display", "Trackball", "Mechanical Switch", "Ribbon Cable", "Power Supply", "Magneto-Optical Drive", 
+            "Tape Drive", "CD-ROM Tray", "RJ45 Jack", "Dial-Up Router", "56k Baud Modem", "Overclocked CPU", "Cooling Fan", "S-Video Line"
+        ];
+
+        const locationNouns = [
+            "Sector", "Bunker", "Archive", "Basement", "Facility", "Network", "Directory", "Gateway", "Subfolder", "Grid", 
+            "Node", "Sanctuary", "Labyrinth", "Cluster", "Hub", "Sub-Level", "Quarantine Zone", "Datacenter", "Exclusion Zone", 
+            "Catacombs", "Server Farm", "Maintenance Shaft", "Cooling Tower", "Plenum", "Crawlspace", "Root Directory", 
+            "Trash Bin", "Cache Memory", "Purgatory", "Void Space", "Dead Zone", "Terminal Room", "Switchboard", "Boiler Room", 
+            "Utility Closet", "Sub-Basement", "Missile Silo", "Vault", "Repository", "Intranet", "LAN Setup", "Broadcast Tower"
+        ];
+
+        const protocolNouns = [
+            "Protocol", "Sequence", "Algorithm", "Directive", "Subroutine", "Override", "Execution", "Command", "Process", 
+            "Exception", "Interrupt", "Daemon", "Index", "Manifest", "Ritual", "Cipher", "Checksum", "Handshake", "Kernel", 
+            "Firmware", "Heuristic", "Macro", "Script", "Boot Sequence", "Diagnostic", "Calibration", "Wipe", "Purge", 
+            "Overflow", "Memory Leak", "Segmentation Fault", "Core Dump", "Recursion", "Infinite Loop", "Invocation", 
+            "Binding", "Exorcism", "Batch File", "Syntax Error"
+        ];
+        
+        const entityNouns = [
+            "Anomaly", "Construct", "Entity", "Poltergeist", "Virus", "Trojan", "Weaver", "Broodmother", "Silhoutte",
+            "Avatar", "Emanation", "Resonance", "Frequencies", "Shadow", "Husk", "Worm", "Crawler", "Host", "Parasite", "God"
+        ];
+
+        const suffixes = [
+            "MK-II", "v6.22", "FZ-10", "66MHz", "Prime", "Null", "Alpha", "Omega", "34CD", "VIC", "C64", "DOS", "System", "Core",
+            "v3.11", "x86", "64-bit", "5.25-inch", "3.5-inch", "Class-K", "Sigma", "Revision-4", "Null-Byte", "486DX", "386", 
+            "OS/2", "Win95", "16-bit", "8-bit", "32-bit", "SCSI-2", "IDE", "FAT32", "NTFS", "ExFAT", "ROM", "RAM", "IRQ-7", "COM1", "LPT1"
+        ];
+
+        let history = [];
+
+        function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function generateName(type) {
+            let result = "";
+            const pre = getRandom(prefixes);
+            const suf = Math.random() > 0.5 ? " " + getRandom(suffixes) : "";
+
+            // Procedural Logic with Structural Variety
+            if (type === 'hardware') {
+                const hw = getRandom(hardwareNouns);
+                const formats = [
+                    `${pre}-${hw}${suf}`,
+                    `The ${pre} ${hw}`,
+                    `${hw} of the ${pre}${suf}`,
+                    `Project ${pre}: ${hw}`
+                ];
+                result = getRandom(formats);
+                
+            } else if (type === 'location') {
+                const loc = getRandom(locationNouns);
+                const formats = [
+                    `Sector ${Math.floor(Math.random() * 999)}: The ${pre} ${loc}`,
+                    `${pre} ${loc}${suf}`,
+                    `The ${loc} of ${pre}`,
+                    `Quarantine Area: ${pre}-${loc}`
+                ];
+                result = getRandom(formats);
+                
+            } else if (type === 'protocol') {
+                const pro = getRandom(protocolNouns);
+                const formats = [
+                    `Directive ${Math.floor(Math.random() * 999)}: ${pre}-${pro}`,
+                    `The ${pre} ${pro}`,
+                    `Init: ${pre}_${pro.replace(' ', '_').toUpperCase()}`,
+                    `Fatal Error: ${pre} ${pro}`
+                ];
+                result = getRandom(formats);
+                
+            } else if (type === 'entity') {
+                const ent = getRandom(entityNouns);
+                const formats = [
+                    `Subject ${Math.floor(Math.random() * 9999)}: The ${pre} ${ent}`,
+                    `${pre}-${ent}${suf}`,
+                    `The ${ent} in the ${getRandom(hardwareNouns)}`,
+                    `Class-X ${ent}: ${pre}`
+                ];
+                result = getRandom(formats);
+            }
+
+            // Display on screen
+            const outputEl = document.getElementById('main-output');
+            outputEl.innerText = result.toUpperCase();
+            
+            // Add visual pulse effect
+            outputEl.style.textShadow = "0 0 20px rgba(255, 255, 255, 0.8)";
+            setTimeout(() => { outputEl.style.textShadow = "0 0 5px rgba(114, 137, 218, 0.5)"; }, 200);
+
+            logToHistory(result.toUpperCase(), type);
+        }
+
+        function logToHistory(name, type) {
+            history.unshift({ name, type });
+            if (history.length > 50) history.pop(); // Keep max 50 items
+            renderHistory();
+        }
+
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = "COPIED";
+                btnElement.style.color = "#fff";
+                btnElement.style.background = "#4CAF50";
+                btnElement.style.borderColor = "#4CAF50";
+                setTimeout(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.style.color = "#aaa";
+                    btnElement.style.background = "transparent";
+                    btnElement.style.borderColor = "#555";
+                }, 1500);
+            });
+        }
+
+        function clearHistory() {
+            history = [];
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-container');
+            document.getElementById('log-count').innerText = `${history.length} items`;
+            
+            if (history.length === 0) {
+                container.innerHTML = '<p style="color: #aaa; font-style: italic; text-align: center; margin-top: 20px;">No data extracted yet.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `history-item ${item.type}`;
+                div.innerHTML = `
+                    <span>${item.name}</span>
+                    <button class="copy-btn" onclick="copyToClipboard('${item.name.replace(/'/g, "\\'")}', this)">COPY</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acoustic Isolation Unit v3.1</title>
+    <style>
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            max-width: 740px; 
+            margin: 2rem auto; 
+            padding: 0 1rem; 
+            background-color: #050505; 
+            color: #ffb000; 
+            text-shadow: 0 0 5px rgba(255, 176, 0, 0.3);
+        }
+        h2 { margin-bottom: 5px; color: #ffb000; text-align: center; }
+        .credit-line { font-size: 0.8em; color: #888; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 25px; text-align: center; }
+        .credit-line a { color: #ffb000; text-decoration: none; }
+        .credit-line a:hover { text-decoration: underline; }
+        
+        .panel { 
+            background: #0a0a0a; 
+            padding: 25px; 
+            border-radius: 6px; 
+            border: 2px solid #ffb000; 
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+        }
+        .panel h3 { margin-top: 0; color: #ffb000; border-bottom: 1px solid #333; padding-bottom: 10px; font-size: 1.05em; text-transform: uppercase; letter-spacing: 1px; }
+
+        label { font-size: 0.85em; font-weight: bold; color: #aaa; display: block; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; }
+
+        .sound-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .sound-btn {
+            background: #111;
+            border: 1px solid #ffb000;
+            color: #ffb000;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 0.82em;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .sound-btn:hover { background: #ffb000; color: #000; }
+        .sound-btn.active { background: #4CAF50; border-color: #4CAF50; color: #fff; text-shadow: none; }
+
+        .slider-group {
+            background: #111;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            margin-bottom: 15px;
+        }
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .slider-row span { font-size: 0.85em; color: #ccc; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #ffb000;
+            cursor: pointer;
+            background: #222;
+        }
+
+        .master-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        button.action-btn {
+            flex: 1;
+            padding: 12px;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .btn-toggle { background: #4CAF50; border: 1px solid #4CAF50; color: white; }
+        .btn-toggle:hover { background: #388E3C; }
+        .btn-toggle.playing { background: #f44336; border-color: #f44336; }
+        .btn-toggle.playing:hover { background: #d32f2f; }
+
+        .status-display {
+            text-align: center;
+            font-size: 0.9em;
+            color: #7289da;
+            margin-top: 15px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Acoustic Isolation Unit v3.1</h2>
+    <div class="credit-line">
+        Created by D.W. Garrett | <a href="mailto:dwgarrett.creative@outlook.com">dwgarrett.creative@outlook.com</a>
+    </div>
+
+    <div class="panel">
+        <h3>Multi-Layer Sound Mixer (Select Any Combination)</h3>
+        <div class="sound-grid">
+            <button class="sound-btn active" onclick="toggleProfile(event, 'rain-ambience')">Rain Ambience</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'subterranean')">Subterranean Vault</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'drips')">Trench Drips</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'rain')">Heavy Rain</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'brown')">Deep Space</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'cave')">Sub-Cave Resonance</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'cyber')">Machine Hum</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'white')">White Noise</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'pink')">Tape Hiss</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'cosmic')">Cosmic Static</button>
+            <button class="sound-btn" onclick="toggleProfile(event, 'wind')">Solar Wind</button>
+        </div>
+
+        <div class="slider-group">
+            <div class="slider-row">
+                <span>Master Volume</span>
+                <span id="vol-val">60%</span>
+            </div>
+            <input type="range" id="vol-slider" min="0" max="100" value="60" oninput="updateVolume()">
+
+            <label style="margin-top: 15px;">Subterranean Depth Filter (Stone Wall Cutoff)</label>
+            <div class="slider-row" style="margin-top: 5px;">
+                <span id="filter-val">1200 Hz (Stone Tunnel)</span>
+            </div>
+            <input type="range" id="filter-slider" min="150" max="6000" step="50" value="1200" oninput="updateFilter()">
+        </div>
+
+        <div class="slider-group">
+            <div class="slider-row">
+                <span>Auto-Stop Timer (Minutes: <span id="timer-val">OFF</span>)</span>
+            </div>
+            <input type="range" id="timer-slider" min="0" max="120" step="5" value="0" oninput="updateTimerSetting()">
+        </div>
+
+        <div class="master-controls">
+            <button class="action-btn btn-toggle" id="toggle-btn" onclick="toggleAudioStream()">ENGAGE GENERATOR</button>
+        </div>
+
+        <div class="status-display" id="status-display">STATUS: STANDBY</div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let masterGain = null;
+        let masterFilter = null;
+        
+        let activeLayers = {};
+        let selectedProfiles = new Set(['rain-ambience']);
+        
+        let isPlaying = false;
+        let timerTimeout = null;
+        let timerInterval = null;
+        let secondsRemaining = 0;
+
+        function toggleProfile(evt, profile) {
+            if (selectedProfiles.has(profile)) {
+                if (selectedProfiles.size > 1) {
+                    selectedProfiles.delete(profile);
+                    if (evt && evt.target) evt.target.classList.remove('active');
+                }
+            } else {
+                selectedProfiles.add(profile);
+                if (evt && evt.target) evt.target.classList.add('active');
+            }
+            
+            if (isPlaying) {
+                stopAllLayers();
+                startAllLayers();
+                updateStatusText();
+            }
+        }
+
+        async function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+
+            if (!masterFilter) {
+                masterFilter = audioCtx.createBiquadFilter();
+                masterFilter.type = 'lowpass';
+                masterFilter.frequency.setValueAtTime(parseInt(document.getElementById('filter-slider').value), audioCtx.currentTime);
+            }
+
+            if (!masterGain) {
+                masterGain = audioCtx.createGain();
+                const sliderVal = parseInt(document.getElementById('vol-slider').value) / 100;
+                masterGain.gain.setValueAtTime(sliderVal * 0.25, audioCtx.currentTime);
+
+                masterFilter.connect(masterGain);
+                masterGain.connect(audioCtx.destination);
+            }
+        }
+
+        async function toggleAudioStream() {
+            await initAudioContext();
+
+            if (isPlaying) {
+                stopAllLayers();
+                isPlaying = false;
+                document.getElementById('toggle-btn').innerText = "ENGAGE GENERATOR";
+                document.getElementById('toggle-btn').classList.remove('playing');
+                document.getElementById('status-display').innerText = "STATUS: STANDBY";
+                clearTimeout(timerTimeout);
+                clearInterval(timerInterval);
+            } else {
+                startAllLayers();
+                isPlaying = true;
+                document.getElementById('toggle-btn').innerText = "DISENGAGE";
+                document.getElementById('toggle-btn').classList.add('playing');
+                updateStatusText();
+                
+                const mins = parseInt(document.getElementById('timer-slider').value);
+                if (mins > 0) {
+                    startTimerCountdown(mins * 60);
+                }
+            }
+        }
+
+        function generateBufferForProfile(profile) {
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = buffer.getChannelData(0);
+
+            if (profile === 'rain-ambience') {
+                // Soft, steady overhead rainfall ambience
+                let b0 = 0, b1 = 0, b2 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    b0 = 0.98 * b0 + white * 0.05;
+                    b1 = 0.92 * b1 + white * 0.08;
+                    let patter = (Math.random() < 0.002) ? (Math.random() * 2.5) : 0;
+                    output[i] = (b0 + b1 + patter) * 0.35;
+                }
+            } else if (profile === 'subterranean') {
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    let lowEarth = (lastOut + (0.005 * white)) / 1.005;
+                    lastOut = lowEarth;
+                    let pressureResonance = Math.sin(i * 0.0008) * 0.25;
+                    output[i] = (lowEarth * 5.0) + pressureResonance;
+                }
+            } else if (profile === 'drips') {
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    let dripImpulse = 0;
+                    if (Math.random() < 0.0002) {
+                        dripImpulse = Math.sin(i * 0.8) * Math.exp(-0.01 * (i % 500));
+                    }
+                    output[i] = (lastOut + (0.01 * white)) / 1.01 + dripImpulse;
+                    lastOut = output[i];
+                    output[i] *= 1.8;
+                }
+            } else if (profile === 'brown') {
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = output[i];
+                    output[i] *= 2.8;
+                }
+            } else if (profile === 'cave') {
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.008 * white)) / 1.008;
+                    lastOut = output[i];
+                    output[i] *= 4.5;
+                }
+            } else if (profile === 'rain') {
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    if (Math.random() < 0.001) white += (Math.random() * 16 - 8);
+                    output[i] = (lastOut + (0.03 * white)) / 1.03;
+                    lastOut = output[i];
+                    output[i] *= 2.2;
+                }
+            } else if (profile === 'cyber') {
+                for (let i = 0; i < bufferSize; i++) {
+                    let hum = Math.sin(i * 0.015) * 0.3;
+                    output[i] = hum + ((Math.random() * 2 - 1) * 0.15);
+                }
+            } else if (profile === 'white') {
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = (Math.random() * 2 - 1) * 0.8;
+                }
+            } else if (profile === 'pink') {
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.1;
+                    b6 = white * 0.115926;
+                }
+            } else if (profile === 'cosmic') {
+                for (let i = 0; i < bufferSize; i++) {
+                    let staticPulse = (Math.random() > 0.92) ? (Math.random() * 2 - 1) * 0.9 : (Math.random() * 2 - 1) * 0.2;
+                    output[i] = staticPulse;
+                }
+            } else if (profile === 'wind') {
+                for (let i = 0; i < bufferSize; i++) {
+                    let windSweep = Math.sin(i * 0.0003) * 0.4;
+                    output[i] = ((Math.random() * 2 - 1) * 0.3) + windSweep;
+                }
+            }
+
+            return buffer;
+        }
+
+        function startAllLayers() {
+            if (!audioCtx) return;
+
+            const layerGainScale = 1 / Math.sqrt(selectedProfiles.size);
+
+            selectedProfiles.forEach(profile => {
+                const buffer = generateBufferForProfile(profile);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
+
+                const layerGain = audioCtx.createGain();
+                layerGain.gain.setValueAtTime(layerGainScale, audioCtx.currentTime);
+
+                source.connect(layerGain);
+                layerGain.connect(masterFilter);
+                source.start();
+
+                activeLayers[profile] = source;
+            });
+        }
+
+        function stopAllLayers() {
+            Object.keys(activeLayers).forEach(p => {
+                try {
+                    activeLayers[p].stop();
+                    activeLayers[p].disconnect();
+                } catch(e) {}
+            });
+            activeLayers = {};
+        }
+
+        function updateVolume() {
+            const val = parseInt(document.getElementById('vol-slider').value);
+            document.getElementById('vol-val').innerText = val + '%';
+            if (masterGain && audioCtx) {
+                masterGain.gain.setValueAtTime((val / 100) * 0.25, audioCtx.currentTime);
+            }
+        }
+
+        function updateFilter() {
+            const val = parseInt(document.getElementById('filter-slider').value);
+            let desc = `${val} Hz`;
+            if (val <= 500) desc += " (Sub-Bunker)";
+            else if (val <= 1200) desc += " (Deep Earth)";
+            else if (val <= 3000) desc += " (Stone Tunnel)";
+            else desc += " (Open Air)";
+
+            document.getElementById('filter-val').innerText = desc;
+            if (masterFilter && audioCtx) {
+                masterFilter.frequency.setValueAtTime(val, audioCtx.currentTime);
+            }
+        }
+
+        function updateTimerSetting() {
+            const mins = parseInt(document.getElementById('timer-slider').value);
+            if (mins === 0) {
+                document.getElementById('timer-val').innerText = "OFF";
+            } else {
+                document.getElementById('timer-val').innerText = mins + " MIN";
+            }
+
+            if (isPlaying) {
+                clearTimeout(timerTimeout);
+                clearInterval(timerInterval);
+                if (mins > 0) {
+                    startTimerCountdown(mins * 60);
+                } else {
+                    updateStatusText();
+                }
+            }
+        }
+
+        function updateStatusText() {
+            const activeList = Array.from(selectedProfiles).map(p => p.toUpperCase()).join(" + ");
+            document.getElementById('status-display').innerText = `STATUS: EMITTING [${activeList}]`;
+        }
+
+        function startTimerCountdown(totalSecs) {
+            secondsRemaining = totalSecs;
+            
+            timerInterval = setInterval(() => {
+                secondsRemaining--;
+                let m = Math.floor(secondsRemaining / 60).toString().padStart(2, '0');
+                let s = (secondsRemaining % 60).toString().padStart(2, '0');
+                document.getElementById('status-display').innerText = `STATUS: AUTO-STOP IN ${m}:${s}`;
+
+                if (secondsRemaining <= 0) {
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+
+            timerTimeout = setTimeout(() => {
+                if (isPlaying) {
+                    toggleAudioStream();
+                }
+            }, totalSecs * 1000);
+        }
+    </script>
+</body>
+</html>
